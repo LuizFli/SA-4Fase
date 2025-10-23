@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
@@ -12,6 +12,14 @@ yarn dev
 pnpm dev
 # or
 bun dev
+```
+
+Environment:
+Set `NEXT_PUBLIC_API_URL` to point to your backend (default: `http://localhost:4000`):
+
+```powershell
+$env:NEXT_PUBLIC_API_URL='http://localhost:4000'
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

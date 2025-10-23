@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  // Use a plain string for role for maximum compatibility with SQLite in local dev.
+  role      String   @default("CLIENT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+}
+
+model Vehicle {
+  id          String   @id @default(uuid())
+  brand       String
+  model       String
+  year        Int
+  price       Float
+  description String?
+  // Images stored in a separate Image model to ensure compatibility with SQLite.
+  images      Image[]
+  sold        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sales       Sale[]
+}
+
+model Sale {
+  id        String   @id @default(uuid())
+  price     Float
+  client    User     @relation(fields: [clientId], references: [id])
+  clientId  String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  vehicleId String
+  createdAt DateTime @default(now())
+}
+
+// Note: Role is stored as a string (e.g. 'ADMIN' or 'CLIENT').
+
+model Image {
+  id        String   @id @default(uuid())
+  url       String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  vehicleId String
+  createdAt DateTime @default(now())
+}
