@@ -1,4 +1,5 @@
-const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Default API URL for development. If you run the backend on another port, set NEXT_PUBLIC_API_URL.
+const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 function wrap(path){
   return base + path;

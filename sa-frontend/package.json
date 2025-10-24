@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "install-all": "npm install"
   },
   "dependencies": {
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "sa-backend": "file:../sa-backend"
+    "sa-backend": "file:../sa-backend",
+    "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

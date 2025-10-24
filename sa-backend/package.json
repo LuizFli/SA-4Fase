@@ -10,6 +10,7 @@
     "prisma:migrate": "prisma migrate dev --name init",
     "seed": "node prisma/seedData.js",
     "bootstrap": "npm --prefix . install && npm --prefix ../sa-frontend install && npx --yes --prefix . prisma generate && npx --yes --prefix . prisma migrate dev --name init || true && npm --prefix . run seed || true",
+  "install-all": "npm install && npx prisma generate",
     "start:all": "start cmd /c \"npm --prefix . run dev\" & start cmd /c \"npm --prefix ../sa-frontend run dev\""
   },
   "author": "",

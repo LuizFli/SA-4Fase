@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
-import vehiclesRoutes from './routes/vehicles.js';
+import authRoutes from './routes/authRoutes.js';
+import vehiclesRoutes from './routes/produtoRoutes.js';
 import { env } from './env.js';
 import { createServer } from 'http';
 import { Server as IOServer } from 'socket.io';

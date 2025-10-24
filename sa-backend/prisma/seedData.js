@@ -1,37 +1,46 @@
 import prisma from '../src/prisma.js';
 import bcrypt from 'bcryptjs';
 
-async function main(){
-  console.log('Seeding database...');
+async function main() {
+  console.log('Seeding database (prisma)...');
 
-  // Clear existing data
-  await prisma.sale.deleteMany();
-  await prisma.image.deleteMany();
-  await prisma.vehicle.deleteMany();
+  // Delete in dependency order
+  await prisma.pedidosProdutos.deleteMany();
+  await prisma.pedidos.deleteMany();
+  await prisma.produto.deleteMany();
+  await prisma.token.deleteMany();
   await prisma.user.deleteMany();
 
   const adminPass = await bcrypt.hash('adminpass', 10);
   const clientPass = await bcrypt.hash('clientpass', 10);
 
-  const admin = await prisma.user.create({ data: { name: 'Admin', email: 'admin@example.com', password: adminPass, role: 'ADMIN' } });
-  const client = await prisma.user.create({ data: { name: 'Client', email: 'client@example.com', password: clientPass, role: 'CLIENT' } });
+  const admin = await prisma.user.create({
+    data: { name: 'Admin', email: 'admin@example.com', password: adminPass },
+  });
 
-  const vehicles = [];
-  vehicles.push(await prisma.vehicle.create({ data: { brand: 'Toyota', model: 'Corolla', year: 2020, price: 35000, description: 'Sedan popular', sold: false } }));
-  vehicles.push(await prisma.vehicle.create({ data: { brand: 'Honda', model: 'Civic', year: 2019, price: 42000, description: 'Sedan médio', sold: false } }));
-  vehicles.push(await prisma.vehicle.create({ data: { brand: 'Ford', model: 'Ka', year: 2018, price: 25000, description: 'Hatch compacto', sold: false } }));
+  const client = await prisma.user.create({
+    data: { name: 'Client', email: 'client@example.com', password: clientPass },
+  });
 
-  // images
-  await prisma.image.createMany({ data: [
-    { url: '/images/corolla-1.jpg', vehicleId: vehicles[0].id },
-    { url: '/images/civic-1.jpg', vehicleId: vehicles[1].id },
-    { url: '/images/ka-1.jpg', vehicleId: vehicles[2].id },
+  // create produtos
+  const prod1 = await prisma.produto.create({ data: { nome: 'Toyota Corolla', descricao: 'Sedan 2020', preco: '35000.00', estoque: 5, userId: admin.id } });
+  const prod2 = await prisma.produto.create({ data: { nome: 'Honda Civic', descricao: 'Sedan 2019', preco: '42000.00', estoque: 3, userId: admin.id } });
+  const prod3 = await prisma.produto.create({ data: { nome: 'Ford Ka', descricao: 'Hatch 2018', preco: '25000.00', estoque: 2, userId: client.id } });
+
+  // create a pedido (order) for client buying prod1 and prod3
+  const pedido = await prisma.pedidos.create({ data: { valor: '60000.00', status: 'PENDENTE', userId: client.id } });
+
+  await prisma.pedidosProdutos.createMany({ data: [
+    { pedidoId: pedido.id, produtoId: prod1.id, quantidade: 1, precoUnitario: '35000.00' },
+    { pedidoId: pedido.id, produtoId: prod3.id, quantidade: 1, precoUnitario: '25000.00' },
   ]});
 
-  // create a sale
-  await prisma.sale.create({ data: { price: vehicles[0].price, clientId: client.id, vehicleId: vehicles[0].id } });
-
-  console.log('Seed complete');
+  console.log('Seed complete:');
+  console.log('  users:', { admin: admin.email, client: client.email });
+  console.log('  passwords: adminpass / clientpass');
+  console.log('  produtos:', [prod1.nome, prod2.nome, prod3.nome]);
 }
 
-main().catch((e)=>{ console.error(e); process.exit(1); }).finally(()=> prisma.$disconnect());
+main()
+  .catch((e) => { console.error('Seed error:', e); process.exit(1); })
+  .finally(() => prisma.$disconnect());

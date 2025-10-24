@@ -3,53 +3,68 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = "mysql://root:senai@127.0.0.1:3306/auth_db"
 }
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  // Use a plain string for role for maximum compatibility with SQLite in local dev.
-  role      String   @default("CLIENT")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sales     Sale[]
+// user table
+model user {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String    @unique
+  password String
+  token    token[]
+  produtos produto[]
+  pedidos  pedidos[]
 }
 
-model Vehicle {
-  id          String   @id @default(uuid())
-  brand       String
-  model       String
-  year        Int
-  price       Float
-  description String?
-  // Images stored in a separate Image model to ensure compatibility with SQLite.
-  images      Image[]
-  sold        Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  sales       Sale[]
+// token table
+model token {
+  id        Int      @id @default(autoincrement())
+  token     String   @db.VarChar(255)
+  type      String   
+  userId    Int
+  revoked   Boolean  @default(value: false)
+  expiresAt DateTime
+  user      user     @relation(fields: [userId], references: [id])
 }
 
-model Sale {
-  id        String   @id @default(uuid())
-  price     Float
-  client    User     @relation(fields: [clientId], references: [id])
-  clientId  String
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
-  vehicleId String
-  createdAt DateTime @default(now())
+// produto table
+model produto {
+  id              Int               @id @default(autoincrement())
+  nome            String
+  descricao       String?
+  preco           Decimal           @db.Decimal(10, 2)
+  status          String            @default("Disponivel")
+  estoque         Int
+  userId          Int
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            user              @relation(fields: [userId], references: [id])
+  pedidosProdutos pedidosProdutos[]
 }
 
-// Note: Role is stored as a string (e.g. 'ADMIN' or 'CLIENT').
+// pedidos 
+model pedidos {
+  id              Int               @id @default(autoincrement())
+  valor           Decimal           @db.Decimal(10, 2)
+  status          String
+  userId          Int
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            user              @relation(fields: [userId], references: [id])
+  pedidosProdutos pedidosProdutos[]
+}
 
-model Image {
-  id        String   @id @default(uuid())
-  url       String
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
-  vehicleId String
-  createdAt DateTime @default(now())
+// tabela de relação entre pedidos e produtos
+model pedidosProdutos {
+  id        Int     @id @default(autoincrement())
+  pedidoId  Int
+  produtoId Int
+  quantidade Int    @default(1)
+  precoUnitario Decimal @db.Decimal(10, 2)
+  pedido    pedidos @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto   produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  
+  @@unique([pedidoId, produtoId])
 }

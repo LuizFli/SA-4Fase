@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prismaClient } from '../prisma/prisma.js';
 
-const prisma = new PrismaClient();
-
-export default prisma;
+// re-export as default for controller imports
+export default prismaClient;
