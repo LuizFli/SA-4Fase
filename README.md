@@ -1,22 +1,25 @@
-# SA-4Fase
-Web Car Sales Platform with IoT Integration
+SA-4Fase
 
-🧩 Project Description – Web Car Sales Platform with IoT Integration
+Plataforma Web de Vendas de Carros com Integração IoT
 
-This project consists of developing a web application for car sales that enables the management of products, sales, and vehicle information in real time. The platform will be built using the Next.js framework, with JavaScript and Node.js for the backend, ensuring high performance, scalability, and a smooth user experience.
+🧩 Descrição do Projeto – Plataforma Web de Vendas de Carros com Integração IoT
 
-In addition to the traditional features of an automotive e-commerce system, the project will include integration with an IoT (Internet of Things) hardware bench. This bench will simulate or perform physical actions related to the products, such as controlling sensors, actuators, or collecting monitoring data. Communication between the web application and the IoT bench will occur through network protocols (such as HTTP, MQTT, or WebSockets), enabling real-time data exchange.
+Este projeto consiste no desenvolvimento de uma aplicação web para vendas de carros que possibilite o gerenciamento de produtos, vendas e informações dos veículos em tempo real.
+A plataforma será construída utilizando o framework Next.js, com JavaScript e Node.js no backend, garantindo alto desempenho, escalabilidade e uma experiência de usuário fluida.
 
-The main goals of the system are:
+Além das funcionalidades tradicionais de um sistema de e-commerce automotivo, o projeto incluirá integração com uma bancada de hardware IoT (Internet das Coisas). Essa bancada irá simular ou executar ações físicas relacionadas aos produtos, como controle de sensores, atuadores ou coleta de dados de monitoramento.
+A comunicação entre a aplicação web e a bancada IoT ocorrerá por meio de protocolos de rede (como HTTP, MQTT ou WebSockets), permitindo a troca de dados em tempo real.
 
-Manage the vehicle catalog, including product registration, editing, and deletion.
+Os principais objetivos do sistema são:
 
-Record and track sales, associating customers, cars, and transaction history.
+Gerenciar o catálogo de veículos, incluindo cadastro, edição e exclusão de produtos.
 
-Integrate the web layer with IoT devices, allowing actions performed on the platform to directly affect the hardware bench (e.g., vehicle status simulation, sensor activation, LED indicators, etc.).
+Registrar e acompanhar vendas, associando clientes, carros e histórico de transações.
 
-Provide a modern, responsive interface built with Next.js, optimized for both desktop and mobile devices.
+Integrar a camada web com dispositivos IoT, permitindo que ações realizadas na plataforma afetem diretamente a bancada de hardware (por exemplo, simulação de status do veículo, ativação de sensores, indicadores de LED etc.).
 
-Implement a robust Node.js backend, responsible for communication between the frontend, database, and IoT bench.
+Fornecer uma interface moderna e responsiva, construída com Next.js, otimizada para dispositivos desktop e móveis.
 
-The expected outcome is a complete and interactive platform that combines modern web development and Internet of Things concepts, demonstrating the potential of integrating software and hardware in real-world commercial applications.
+Implementar um backend robusto em Node.js, responsável pela comunicação entre o frontend, o banco de dados e a bancada IoT.
+
+O resultado esperado é uma plataforma completa e interativa que combine conceitos modernos de desenvolvimento web e Internet das Coisas, demonstrando o potencial da integração entre software e hardware em aplicações comerciais do mundo real.
