@@ -19,7 +19,7 @@ export default function LoginPage() {
         if (!payload) return false;
         const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
         let json = '';
-        try { json = decodeURIComponent(atob(base64).split('').map(function(c){ return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join('')); } catch (e) { json = atob(base64); }
+        try { json = decodeURIComponent(atob(base64).split('').map(function (c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); }).join('')); } catch (e) { json = atob(base64); }
         const obj = JSON.parse(json);
         if (!obj.exp) return false;
         const now = Math.floor(Date.now() / 1000);
@@ -40,10 +40,10 @@ export default function LoginPage() {
     setError('');
     try {
       const res = await api.post('/auth/login', { email, password });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Login failed');
-  // backend returns accessToken/refreshToken; save accessToken to localStorage
-  localStorage.setItem('access', data.accessToken || data.access);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+      // backend returns accessToken/refreshToken; save accessToken to localStorage
+      localStorage.setItem('access', data.accessToken || data.access);
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/vehicles');
     } catch (err) {
@@ -55,8 +55,8 @@ export default function LoginPage() {
     <div className="p-6 max-w-md mx-auto">
       <h1 className="text-2xl mb-4">Login</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="p-2 border" />
-        <input value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Password" type="password" className="p-2 border" />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="p-2 border" />
+        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" className="p-2 border" />
         <button className="p-2 bg-blue-600 text-white rounded">Login</button>
         {error && <div className="text-red-600">{error}</div>}
       </form>

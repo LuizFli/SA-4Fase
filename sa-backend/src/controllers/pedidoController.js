@@ -69,24 +69,52 @@ export const createPedido = async (req, res) => {
     const token = req?.headers?.authorization?.slice('Bearer '.length);
     const payload = verifyAccess(token || '');
 
+    // validar produtos recebido
+    if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+      return res.status(400).json({ error: 'Campo "produtos" deve ser um array de ids' });
+    }
+
     // buscar produtos do pedido no banco
-    const produtosDb = await prisma.produto.findMany({ where: { id: { in: produtos } } });
+    const produtosDb = await prisma.produto.findMany({ where: { id: { in: produtos.map(Number) } } });
+    if (!produtosDb || produtosDb.length === 0) {
+      return res.status(400).json({ error: 'Nenhum produto encontrado para os ids fornecidos' });
+    }
+
+    // calcular valor total simples (soma dos preços)
+    const valorTotal = produtosDb.reduce((acc, p) => acc + Number(p.preco), 0);
+
+    // criar registro de pedido
     const pedido = await prisma.pedidos.create({
       data: {
         ...dados,
+        valor: valorTotal,
+        status: dados.status || 'pendente',
         userId: payload.id,
-        produto: {
-          create: produtosDb.map((produto) => ({ nome: produto.nome, preco: produto.preco, descricao: produto.descricao, status: produto.status, estoque: produto.estoque, userId: produto.userId })),
-        },
       },
-      include: { pedidosProdutos: { include: { produto: true } } },
     });
 
-    const resultado = await simuladorService.enviarPedidoParaFila(pedido);
+    // criar itens de pedido (pedidosProdutos)
+    const itens = produtosDb.map((produto) => ({
+      pedidoId: pedido.id,
+      produtoId: produto.id,
+      quantidade: 1,
+      precoUnitario: produto.preco,
+    }));
+
+    // usar createMany para inserir os itens
+    await prisma.pedidosProdutos.createMany({ data: itens });
+
+    // buscar o pedido com os produtos incluídos para retorno
+    const pedidoWithItems = await prisma.pedidos.findUnique({
+      where: { id: pedido.id },
+      include: { pedidosProdutos: { include: { produto: true } }, user: { select: { id: true, name: true, email: true } } },
+    });
+
+    const resultado = await simuladorService.enviarPedidoParaFila(pedidoWithItems);
     if (!resultado) return res.status(400).send('Erro ao enviar para o simulador/bancada');
 
     console.log('Enviado para simulador/bancada com sucesso!');
-    res.status(201).json(pedido);
+    res.status(201).json(pedidoWithItems);
   } catch (error) {
     res.status(500).send(`Erro no servidor: ${error}`);
   }

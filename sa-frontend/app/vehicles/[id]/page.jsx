@@ -18,7 +18,20 @@ export default function VehicleDetail() {
       const res = await api.get(`/vehicles/${id}`);
       if (!res.ok) { setError('Not found'); setLoading(false); return; }
       const data = await res.json();
-      setVehicle(data);
+
+      // normalize backend produto -> frontend vehicle shape
+      // backend returns: { id, nome, descricao, preco, estoque, ... }
+      const normalized = {
+        id: data.id,
+        // try to split nome into brand/model when possible (e.g. "Toyota Corolla")
+        name: data.nome || `${data.brand || ''} ${data.model || ''}`.trim(),
+        description: data.descricao || data.description || '',
+        price: data.preco || data.price || 0,
+        estoque: data.estoque || null,
+        raw: data,
+      };
+
+      setVehicle(normalized);
       setLoading(false);
     }
     load();
@@ -26,9 +39,13 @@ export default function VehicleDetail() {
 
   async function handleBuy(){
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const res = await api.post('/sales', { vehicleId: id, clientId: user.id, price: vehicle.price }, true);
-      if (!res.ok) throw new Error('Purchase failed');
+      // create a pedido using the backend contract: { produtos: [ids], valor, status }
+      const body = { produtos: [Number(id)], valor: vehicle.price, status: 'PENDENTE' };
+      const res = await api.post('/sales/pedidos', body, true);
+      if (!res.ok) {
+        const errText = await res.text().catch(()=>res.statusText || 'Purchase failed');
+        throw new Error(errText || 'Purchase failed');
+      }
       router.push('/sales');
     } catch (err) { setError(err.message); }
   }
@@ -38,8 +55,8 @@ export default function VehicleDetail() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl mb-2">{vehicle.brand} {vehicle.model}</h1>
-      <p>Year: {vehicle.year}</p>
+      <h1 className="text-2xl mb-2">{vehicle.name}</h1>
+      {vehicle.estoque !== null && <p>Stock: {vehicle.estoque}</p>}
       <p>Price: ${vehicle.price}</p>
       <p className="my-2">{vehicle.description}</p>
       <button onClick={handleBuy} className="p-2 bg-green-600 text-white rounded">Buy</button>

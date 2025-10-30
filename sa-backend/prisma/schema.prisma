@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:senai@127.0.0.1:3306/auth_db"
+  url      = "mysql://root:senai@98.83.199.74:3306/auth_db"
 }
 
 // user table

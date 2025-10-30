@@ -7,6 +7,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('CLIENT');
   const [error, setError] = useState('');
   const router = useRouter();
 
@@ -14,7 +15,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     try {
-      const res = await api.post('/auth/register', { name, email, password, role: 'CLIENT' });
+      const res = await api.post('/auth/register', { name, email, password, role });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Register failed');
       localStorage.setItem('access', data.access);
@@ -32,6 +33,7 @@ export default function RegisterPage() {
         <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Name" className="p-2 border" />
         <input value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="p-2 border" />
         <input value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Password" type="password" className="p-2 border" />
+        <input value={role} onChange={(e)=>setRole(e.target.value)} placeholder="Role" className="p-2 border" />
         <button className="p-2 bg-green-600 text-white rounded">Register</button>
         {error && <div className="text-red-600">{error}</div>}
       </form>
