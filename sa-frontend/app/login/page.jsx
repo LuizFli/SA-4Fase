@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // if token exists and is valid, redirect to vehicles
+  // if token exists and is valid, redirect to home
     const isTokenValid = (token) => {
       if (!token) return false;
       try {
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('access') : null;
     if (isTokenValid(token)) {
-      router.replace('/vehicles');
+      router.replace('/home');
     }
   }, [router]);
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
       // backend returns accessToken/refreshToken; save accessToken to localStorage
       localStorage.setItem('access', data.accessToken || data.access);
       localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/vehicles');
+  router.push('/home');
     } catch (err) {
       setError(err.message);
     }

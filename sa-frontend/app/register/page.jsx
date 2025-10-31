@@ -7,20 +7,23 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('CLIENT');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setSuccess('');
     try {
-      const res = await api.post('/auth/register', { name, email, password, role });
+      // backend register returns only the created user; it does NOT return tokens
+      const res = await api.post('/auth/register', { name, email, password });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Register failed');
-      localStorage.setItem('access', data.access);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/vehicles');
+      // Do not change page or store tokens here; this page is for cadastrar funcionários
+      setSuccess('Funcionário cadastrado com sucesso.');
+      // Optional: clear form
+      setName(''); setEmail(''); setPassword('');
     } catch (err) {
       setError(err.message);
     }
@@ -33,9 +36,9 @@ export default function RegisterPage() {
         <input value={name} onChange={(e)=>setName(e.target.value)} placeholder="Name" className="p-2 border" />
         <input value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="p-2 border" />
         <input value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="Password" type="password" className="p-2 border" />
-        <input value={role} onChange={(e)=>setRole(e.target.value)} placeholder="Role" className="p-2 border" />
         <button className="p-2 bg-green-600 text-white rounded">Register</button>
         {error && <div className="text-red-600">{error}</div>}
+        {success && <div className="text-green-700">{success}</div>}
       </form>
     </div>
   );

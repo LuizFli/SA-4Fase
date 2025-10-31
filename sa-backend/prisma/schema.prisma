@@ -37,6 +37,12 @@ model produto {
   preco           Decimal           @db.Decimal(10, 2)
   status          String            @default("Disponivel")
   estoque         Int
+  // Detalhes do veículo
+  marca           String?
+  modelo          String?
+  cor             String?
+  ano             Int?
+  kilometragem    Int?
   userId          Int
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -50,6 +56,9 @@ model pedidos {
   valor           Decimal           @db.Decimal(10, 2)
   status          String
   userId          Int
+  configuracao    Json?
+  quantidade      Int               @default(1)
+  enviadoAoEstoque Boolean          @default(false)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   user            user              @relation(fields: [userId], references: [id])

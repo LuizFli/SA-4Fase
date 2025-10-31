@@ -15,7 +15,7 @@ export default function VehicleDetail() {
   useEffect(()=>{
     async function load(){
       setLoading(true);
-      const res = await api.get(`/vehicles/${id}`);
+  const res = await api.get(`/vehicles/${id}`);
       if (!res.ok) { setError('Not found'); setLoading(false); return; }
       const data = await res.json();
 
@@ -39,14 +39,14 @@ export default function VehicleDetail() {
 
   async function handleBuy(){
     try {
-      // create a pedido using the backend contract: { produtos: [ids], valor, status }
-      const body = { produtos: [Number(id)], valor: vehicle.price, status: 'PENDENTE' };
-      const res = await api.post('/sales/pedidos', body, true);
+      // criar um pedido usando o contrato do backend: { produtos: [ids] }
+      const body = { produtos: [Number(id)] };
+      const res = await api.post('/pedidos', body, true);
       if (!res.ok) {
         const errText = await res.text().catch(()=>res.statusText || 'Purchase failed');
         throw new Error(errText || 'Purchase failed');
       }
-      router.push('/sales');
+      router.push('/pedidos');
     } catch (err) { setError(err.message); }
   }
 

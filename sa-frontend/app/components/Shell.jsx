@@ -86,10 +86,11 @@ export default function Shell({ children }) {
       <div className="flex flex-1">
         <aside className="w-64 bg-white dark:bg-gray-800 border-r p-4">
           <nav className="flex flex-col gap-2">
-            <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/vehicles">Veículos</Link>
+            <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/home">Home</Link>
+            <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/estoque">Estoque</Link>
             <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/pedidos">Pedidos</Link>
             <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/iot">IoT</Link>
-            <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/register">Registrar</Link>
+            <Link className="px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" href="/register">Registro</Link>
           </nav>
         </aside>
 
