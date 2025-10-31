@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE `produto`
+  ADD COLUMN `marca` VARCHAR(191) NULL,
+  ADD COLUMN `modelo` VARCHAR(191) NULL,
+  ADD COLUMN `cor` VARCHAR(191) NULL,
+  ADD COLUMN `ano` INTEGER NULL,
+  ADD COLUMN `kilometragem` INTEGER NULL;

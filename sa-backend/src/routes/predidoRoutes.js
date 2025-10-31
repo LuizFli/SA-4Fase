@@ -11,10 +11,11 @@ import { auth } from "../middleware/auth.js";
 const pedidoRouter = Router();
 
 // Rotas protegidas - requerem autenticação
-pedidoRouter.post("/pedidos", auth, createPedido);
-pedidoRouter.get("/pedidos", auth, listPedidos);
-pedidoRouter.get("/pedidos/:id", auth, listPedidoById);
-pedidoRouter.put("/pedidos/:id", auth, updatePedido);
-pedidoRouter.delete("/pedidos/:id", auth, deletePedido);
+// Importante: como esse router é montado em "/pedidos" no index, aqui usamos caminhos relativos
+pedidoRouter.post("/", auth, createPedido);
+pedidoRouter.get("/", auth, listPedidos);
+pedidoRouter.get("/:id", auth, listPedidoById);
+pedidoRouter.put("/:id", auth, updatePedido);
+pedidoRouter.delete("/:id", auth, deletePedido);
 
 export default pedidoRouter;

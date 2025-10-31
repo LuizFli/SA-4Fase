@@ -35,7 +35,7 @@ export default function RootPage() {
     // run only on client
     const token = typeof window !== 'undefined' ? localStorage.getItem('access') : null;
     if (isTokenValid(token)) {
-      router.replace('/vehicles');
+      router.replace('/home');
     } else {
       router.replace('/login');
     }

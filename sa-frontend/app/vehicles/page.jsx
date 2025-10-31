@@ -35,7 +35,9 @@ export default function VehiclesPage() {
         return;
       }
 
-      const res = await api.get('/vehicles');
+      // The backend exposes products at /produtos (Portuguese naming).
+      // Request that endpoint and adapt the UI to produto fields.
+      const res = await api.get('/produtos');
       const data = await res.json();
       if (res.ok) setVehicles(data || []);
       setLoading(false);
@@ -52,8 +54,10 @@ export default function VehiclesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {vehicles.map(v=> (
           <div key={v.id} className="p-4 border rounded">
-            <h2 className="text-lg font-semibold">{v.brand} {v.model}</h2>
-            <p>Year: {v.year} - Price: ${v.price}</p>
+            <h2 className="text-lg font-semibold">{v.nome}</h2>
+            {v.descricao ? <p className="text-sm text-gray-600">{v.descricao}</p> : null}
+            <p className="mt-2">Stock: {v.estoque} — Price: ${v.preco}</p>
+            {/* link kept to vehicles path for UI; if you want a produto detail route, change accordingly */}
             <Link href={`/vehicles/${v.id}`} className="text-blue-600">View</Link>
           </div>
         ))}
