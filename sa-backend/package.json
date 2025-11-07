@@ -1,36 +1,40 @@
 {
-  "name": "sa-backend",
+  "name": "auth_jwt",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "description": "Repository for students, development jwt auth",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node src/index.js",
-    "start": "node src/index.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "seed": "node prisma/seedData.js",
-    "bootstrap": "npm --prefix . install && npm --prefix ../sa-frontend install && npx --yes --prefix . prisma generate && npx --yes --prefix . prisma migrate dev --name init || true && npm --prefix . run seed || true",
-  "install-all": "npm install && npx prisma generate",
-    "start:all": "start cmd /c \"npm --prefix . run dev\" & start cmd /c \"npm --prefix ../sa-frontend run dev\""
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "npx tsx --watch src/app.ts "
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alekmz/auth_jwt.git"
+  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "bugs": {
+    "url": "https://github.com/Alekmz/auth_jwt/issues"
+  },
+  "homepage": "https://github.com/Alekmz/auth_jwt#readme",
   "dependencies": {
-    "@prisma/client": "^5.12.0",
+    "@prisma/client": "^6.14.0",
     "axios": "^1.12.2",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "csv-writer": "^1.6.0",
-    "express": "^4.18.2",
+    "bcrypt": "^6.0.0",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
-    "node": "^22.21.0",
-    "nodemailer": "^6.9.4",
-    "pdfkit": "^0.13.0",
-    "prisma": "^5.12.0",
-    "dotenv": "^16.1.4",
-    "sa-backend": "file:",
-    "socket.io": "^4.7.2"
+    "prisma": "^6.14.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.3.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
   }
 }

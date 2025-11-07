@@ -1,7 +1,6 @@
-
 export const env = {
-  accessSecret: process.env.ACCESS_SECRET || 'change_this_access_secret',
-  refreshSecret: process.env.REFRESH_SECRET || 'change_this_refresh_secret',
-  accessTtl: process.env.ACCESS_TTL || '3600', // seconds or string like '1h'
-  refreshTtl: process.env.REFRESH_TTL || '86400',
+  accessSecret: process.env.ACCESS_TOKEN_SECRET ?? "",
+  refreshSecret: process.env.REFRESH_TOKEN_SECRET ?? "",
+  accessTtl: process.env.JWT_ACCESS_EXPIRES_IN ?? 900000,
+  refreshTtl: process.env.JWT_REFRESH_EXPIRES_IN ?? 2.88e+7,
 };

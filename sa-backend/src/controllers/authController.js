@@ -1,70 +1,171 @@
-import bcrypt from 'bcryptjs';
-import prisma from '../prisma.js';
-import { signAccessToken, signRefreshToken, verifyRefresh } from '../utils/jwt.js';
+import bcrypt from "bcrypt";
+import { prismaClient } from "../../prisma/prisma.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefresh,
+} from "../utils/jwt.js";
 
 export const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios' });
-
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(409).json({ error: 'Usuário já existe' });
-
+    // Validação básica
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email e senha são obrigatórios" });
+    }
+    // Verificar se usuário já existe
+    const existingUser = await prismaClient.user.findUnique({
+      where: { email },
+    });
+    if (existingUser) {
+      return res.status(409).json({ error: "Usuário já existe" });
+    }
+    // Hash da senha com bcrypt
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const user = await prisma.user.create({ data: { email, password: hashedPassword, name: name || null }, select: { id: true, email: true, name: true } });
+    // Criar usuário no banco de dados
+    const user = await prismaClient.user.create({
+      data: { email, password: hashedPassword, name: name || null },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
     return res.status(201).json(user);
   } catch (error) {
-    console.error('Erro no registro:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro no registro:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
+  return res.status(400).send("Not Found");
 };
 
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: 'Credenciais inválidas' });
+    const user = await prismaClient.user.findUnique({ where: { email } }); // Verificar se usuário existe e senha está correta
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+    // Gerar access token (curta duração)
+    const accessToken = signAccessToken({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
-    const accessToken = signAccessToken({ id: user.id, email: user.email, name: user.name });
-    const refreshToken = signRefreshToken({ id: user.id, email: user.email, name: user.name });
-
+    // Gerar refresh token (longa duração)
+    const refreshToken = signRefreshToken({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    });
+    // Armazenar refresh token no banco de dados
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
-
-    await prisma.token.create({ data: { token: refreshToken, type: 'refresh', userId: user.id, expiresAt } });
-
-    return res.status(200).json({ accessToken, refreshToken, user: { id: user.id, email: user.email, name: user.name } });
+    console.log(refreshToken);
+    await prismaClient.token.create({
+      data: {
+        token: refreshToken,
+        type: "refresh",
+        userId: user.id,
+        expiresAt,
+      },
+    });
+    res.status(200).json({
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
   } catch (error) {
-    console.error('Erro no login:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro no login:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
+  return res;
 };
 
 export const refresh = async (req, res) => {
   const { refreshToken } = req.body;
-  const storedRefreshToken = await prisma.token.findFirst({ where: { token: refreshToken } });
-  if (!storedRefreshToken || storedRefreshToken.revoked || storedRefreshToken.expiresAt < new Date()) return res.status(401).json({ error: 'invalid refresh token' });
+  const storedRefreshToken = await prismaClient.token.findFirst({
+    where: { token: refreshToken },
+  });
+  if (
+    !storedRefreshToken ||
+    storedRefreshToken.revoked ||
+    storedRefreshToken.expiresAt < new Date()
+  )
+    return res.status(401).json({ error: "invalid refresh token" });
 
   try {
     const payload = verifyRefresh(refreshToken);
-    const accessToken = signAccessToken({ id: payload.id, email: payload.email, name: payload.name });
+    const accessToken = signAccessToken({
+      userId: payload.id,
+      email: payload.email,
+      name: payload.name,
+    });
     return res.json({ accessToken });
-  } catch (err) {
-    return res.status(401).json({ error: 'invalid refresh token' });
+  } catch {
+    return res.status(401).json({ error: "invalid refresh token" });
   }
 };
 
 export const logout = async (req, res) => {
   const { refreshToken } = req.body;
   try {
-    const storedRefreshToken = await prisma.token.findFirst({ where: { token: refreshToken } });
-    if (!storedRefreshToken || storedRefreshToken.revoked || storedRefreshToken.expiresAt < new Date()) return res.status(401).json({ error: 'invalid refresh token' });
+    const storedRefreshToken = await prismaClient.token.findFirst({
+      where: { token: refreshToken },
+    });
+    if (
+      !storedRefreshToken ||
+      storedRefreshToken.revoked ||
+      storedRefreshToken.expiresAt < new Date()
+    )
+      return res.status(401).json({ error: "invalid refresh token" });
 
-    await prisma.token.updateMany({ where: { id: storedRefreshToken.id }, data: { revoked: true } });
-    return res.status(200).json('Usuário deslogado!');
+    await prismaClient.token.updateMany({
+      where: { id: storedRefreshToken?.id ?? 0 },
+      data: { revoked: true },
+    });
   } catch (error) {
-    return res.status(400).json(error);
+    res.status(400).json(error);
+  }
+
+  return res.status(200).json("Usuário deslogado!");
+
+};
+
+// Verifica o token de acesso e retorna o usuário
+export const verify = async (req, res) => {
+  try {
+    // auth middleware já validou e anexou req.user
+    const payload = req.user;
+    if (!payload) return res.status(401).json({ valid: false, error: "unauthorized" });
+
+    // Tenta enriquecer com dados atuais do banco, mas não falha se o DB estiver offline
+    try {
+      const user = await prismaClient.user.findUnique({
+        where: { id: payload.userId },
+        select: { id: true, email: true, name: true },
+      });
+      if (user) return res.json({ valid: true, user });
+    } catch (_) {
+      // ignora erros de DB e devolve dados do token
+    }
+
+    // Fallback para dados do token
+    return res.json({
+      valid: true,
+      user: {
+        id: payload.userId,
+        email: payload.email,
+        name: payload.name,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({ valid: false, error: "invalid or expired token" });
   }
 };

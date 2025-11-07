@@ -1,18 +1,20 @@
 import { Router } from "express";
-import {
-  createProduto,
-  listProdutos,
-  listProdutoById,
-  updateProduto,
-  deleteProduto,
-} from "../controllers/produtoController.js";
+import { createProduto, deleteProduto, listProdutoById, listProdutos, updateProduto, restockProdutos, listProdutosSelect } from "../controllers/produtoController.js";
 
-const produtoRouter = Router();
 
-produtoRouter.post("/produtos", createProduto);
-produtoRouter.get("/produtos", listProdutos);
-produtoRouter.get("/produtos/:id", listProdutoById);
-produtoRouter.put("/produtos/:id", updateProduto);
-produtoRouter.delete("/produtos/:id", deleteProduto);
+const produtosRouter = Router();
 
-export default produtoRouter;
+produtosRouter.post("/produtos", createProduto);
+produtosRouter.get("/produtos", listProdutos);
+produtosRouter.get("/produtos/select", listProdutosSelect);
+
+produtosRouter.get("/produtos/:id", listProdutoById);
+
+produtosRouter.put("/produtos/:id", updateProduto);
+
+produtosRouter.delete("/produtos/:id", deleteProduto);
+
+// Reabastecer estoque
+produtosRouter.post("/produtos/reabastecer", restockProdutos);
+
+export default produtosRouter;

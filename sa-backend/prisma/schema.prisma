@@ -1,10 +1,16 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:senai@98.83.199.74:3306/auth_db"
+  url      = env("DATABASE_URL")
 }
 
 // user table
@@ -14,66 +20,61 @@ model user {
   email    String    @unique
   password String
   token    token[]
-  produtos produto[]
-  pedidos  pedidos[]
+  pedido   pedido[]
+  produto  produto[]
 }
 
 // token table
 model token {
   id        Int      @id @default(autoincrement())
   token     String   @db.VarChar(255)
-  type      String   
+  type      String
   userId    Int
   revoked   Boolean  @default(value: false)
   expiresAt DateTime
   user      user     @relation(fields: [userId], references: [id])
 }
 
-// produto table
+//produto
 model produto {
-  id              Int               @id @default(autoincrement())
-  nome            String
-  descricao       String?
-  preco           Decimal           @db.Decimal(10, 2)
-  status          String            @default("Disponivel")
-  estoque         Int
-  // Detalhes do veículo
-  marca           String?
-  modelo          String?
-  cor             String?
-  ano             Int?
-  kilometragem    Int?
-  userId          Int
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  user            user              @relation(fields: [userId], references: [id])
-  pedidosProdutos pedidosProdutos[]
+  id                Int                 @id @default(autoincrement())
+  marca             String
+  modelo            String
+  ano               Int
+  cor               String
+  motor             String
+  cambio            String
+  preco             Decimal
+  status            String
+  bloco             Json
+  estoque           Int
+  userId            Int
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  user              user                @relation(fields: [userId], references: [id])
+  pedido            pedido[]
+  produtosEmPedidos produtosEmPedidos[]
 }
 
-// pedidos 
-model pedidos {
-  id              Int               @id @default(autoincrement())
-  valor           Decimal           @db.Decimal(10, 2)
-  status          String
-  userId          Int
-  configuracao    Json?
-  quantidade      Int               @default(1)
-  enviadoAoEstoque Boolean          @default(false)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  user            user              @relation(fields: [userId], references: [id])
-  pedidosProdutos pedidosProdutos[]
+// pedido
+model pedido {
+  id                Int                 @id @default(autoincrement())
+  valor             Decimal
+  status            String
+  userId            Int
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  user              user                @relation(fields: [userId], references: [id])
+  produto           produto[]
+  produtosEmPedidos produtosEmPedidos[]
 }
 
-// tabela de relação entre pedidos e produtos
-model pedidosProdutos {
-  id        Int     @id @default(autoincrement())
-  pedidoId  Int
-  produtoId Int
-  quantidade Int    @default(1)
-  precoUnitario Decimal @db.Decimal(10, 2)
-  pedido    pedidos @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  produto   produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
-  
-  @@unique([pedidoId, produtoId])
+model produtosEmPedidos {
+  id_pedido  Int
+  id_produto Int
+  quantidade Int @default(1)
+  pedido     pedido  @relation(fields: [id_pedido], references: [id])
+  produto    produto @relation(fields: [id_produto], references: [id])
+
+  @@id([id_pedido, id_produto])
 }

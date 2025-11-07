@@ -1,29 +1,64 @@
-Backend for SA-4Fase
+# auth_jwt
+Repository for students, development jwt auth
 
-Quick start (Windows PowerShell):
 
-1. Install dependencies:
+npm install express prisma @prisma/client
+npm install -D typescript @types/node @types/express ts-node nodemon
 
-```powershell
-npm install
-```
+npx tsc --init
 
-2. Generate Prisma client and run migration (SQLite):
+npx prisma init
 
-```powershell
-npm run prisma:generate
-npm run prisma:migrate
-```
+npx prisma generate
 
-3. Start server:
+npx prisma migrate dev --name init_migration
 
-```powershell
+5. Nodemon Configuration and Scripts:
+Configure Nodemon: Create a nodemon.json file in your project root:
+Código
+
+    // nodemon.json
+    {
+      "watch": ["src"],
+      "ext": "ts",
+      "execMap": {
+        "ts": "ts-node"
+      }
+    }
+Add Scripts to package.json.
+Código
+
+    // package.json
+    {
+      "name": "my-express-prisma-app",
+      "version": "1.0.0",
+      "main": "dist/index.js",
+      "scripts": {
+        "build": "npx tsc",
+        "start": "node dist/index.js",
+        "dev": "nodemon --exec ts-node src/index.ts"
+      },
+      "devDependencies": {
+        // ... your dev dependencies
+      },
+      "dependencies": {
+        // ... your dependencies
+      }
+    }
+6. Running the Application:
 npm run dev
+npm run build
+npm start
+
+## Build Process
+
+For development (hot reload, real-time changes):
+```
+  docker build -t auth_jwt:dev --target dev .
 ```
 
-Default server: http://localhost:4000
-
-Endpoints:
-- GET /health
-- POST /auth/register { name, email, password, role }
-- POST /auth/login { email, password }
+For production (compiled code, production-only dependencies):
+```
+docker build -t auth_jwt:prod --target prod .
+docker run -p 3000:3000 auth_jwt:prod
+```
