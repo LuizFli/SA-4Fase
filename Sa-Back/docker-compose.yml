@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: auth_jwt_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: authdb
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: auth_jwt_app
+    restart: always
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://root:root@db:3306/authdb
+      NODE_ENV: development
+      ACCESS_TOKEN_SECRET: "chaveSuperSecreta123"
+      REFRESH_TOKEN_SECRET: "chaveMuitoMuitoSecreta456"
+
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:
