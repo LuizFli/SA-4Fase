@@ -1,0 +1,1 @@
+docker run --name mysql-sa -e MYSQL_ROOT_PASSWORD=senai -d -p 3306:3306 mysql:latest
