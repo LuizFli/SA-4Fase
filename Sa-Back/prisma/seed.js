@@ -102,21 +102,8 @@ async function main() {
     produtosSeed.map((p) => prisma.produto.create({ data: p }))
   );
 
-  // Pedido de exemplo para o user comum relacionando 2 produtos
-  const pedido = await prisma.pedido.create({
-    data: {
-      valor: new Prisma.Decimal("200000"),
-      status: "PENDENTE",
-      userId: user.id,
-    },
-  });
-
-  await prisma.produtosEmPedidos.createMany({
-    data: [
-      { id_pedido: pedido.id, id_produto: createdProdutos[0].id },
-      { id_pedido: pedido.id, id_produto: createdProdutos[1].id },
-    ],
-  });
+  
+  
 
   console.log("Seed concluído com sucesso.");
 }

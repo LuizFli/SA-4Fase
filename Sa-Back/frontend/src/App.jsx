@@ -4,6 +4,8 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Login } from './pages/Login.jsx';
 import { Register } from './pages/Register.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
+import { PedidoCreate } from './pages/PedidoCreate.jsx';
+import { PedidosList } from './pages/PedidosList.jsx';
 import './App.css';
 
 function App() {
@@ -18,6 +20,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pedidos"
+            element={
+              <ProtectedRoute>
+                <PedidosList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pedidos/novo"
+            element={
+              <ProtectedRoute>
+                <PedidoCreate />
               </ProtectedRoute>
             }
           />

@@ -62,6 +62,7 @@ model pedido {
   valor             Decimal
   status            String
   userId            Int
+  idfila            String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   user              user                @relation(fields: [userId], references: [id])

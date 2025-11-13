@@ -6,6 +6,7 @@ import {
   listPedidos,
   updatePedido,
   updateStatus,
+  pedidoStatus,
 } from "../controllers/pedidosController.js";
 
 const pedidosRouter = Router();
@@ -14,6 +15,7 @@ pedidosRouter.post("/pedidos", createPedido);
 pedidosRouter.get("/pedidos", listPedidos);
 
 pedidosRouter.get("/pedidos/:id", listPedidoById);
+pedidosRouter.get("/pedidos/:id/status", pedidoStatus);
 
 pedidosRouter.put("/pedidos/:id", updatePedido);
 
