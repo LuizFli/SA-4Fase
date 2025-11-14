@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+.git
+.gitignore
+dist
+logs
+*.log
+*.env
+.env*
+coverage
+tmp
+prisma/*.db
+# Opcional: ignorar frontend se o contexto for somente backend
+frontend/

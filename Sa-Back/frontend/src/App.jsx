@@ -6,6 +6,7 @@ import { Register } from './pages/Register.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import { PedidoCreate } from './pages/PedidoCreate.jsx';
 import { PedidosList } from './pages/PedidosList.jsx';
+import { Estoque } from './pages/Estoque.jsx';
 import './App.css';
 
 function App() {
@@ -36,6 +37,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PedidoCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/estoque"
+            element={
+              <ProtectedRoute>
+                <Estoque />
               </ProtectedRoute>
             }
           />

@@ -43,8 +43,21 @@ function normalizeExternalStatus(raw) {
   }
 }
 
+// Incrementa o estoque dos produtos vinculados ao pedido
+async function incrementarEstoqueDoPedido(prisma, pedidoId) {
+  const itens = await prisma.produtosEmPedidos.findMany({
+    where: { id_pedido: Number(pedidoId) },
+  });
+  for (const it of itens) {
+    await prisma.produto.update({
+      where: { id: it.id_produto },
+      data: { estoque: { increment: 1 } },
+    });
+  }
+}
+
 export const pedidoStatus = async (req, res) => {
-  const { params } = req;
+  const { params, query } = req;
   try {
     // Buscar o pedido pelo ID (pedidoId vindo da aplicação)
     const pedido = await prismaClient.pedido.findUnique({
@@ -67,10 +80,21 @@ export const pedidoStatus = async (req, res) => {
     // Atualizar somente se mudou
     let pedidoAtualizado = pedido;
     if (pedido.status !== novoStatus) {
-      pedidoAtualizado = await prismaClient.pedido.update({
-        where: { id: pedido.id },
-        data: { status: novoStatus },
-      });
+      // Se está finalizando agora, incrementa estoque dos produtos do pedido
+      if (novoStatus === INTERNAL_STATUS.FINALIZADO) {
+        pedidoAtualizado = await prismaClient.$transaction(async (tx) => {
+          await incrementarEstoqueDoPedido(tx, pedido.id);
+          return tx.pedido.update({
+            where: { id: pedido.id },
+            data: { status: novoStatus },
+          });
+        });
+      } else {
+        pedidoAtualizado = await prismaClient.pedido.update({
+          where: { id: pedido.id },
+          data: { status: novoStatus },
+        });
+      }
     }
 
     return res.status(200).json({ status: pedidoAtualizado.status, idfila: pedidoAtualizado.idfila });
@@ -233,12 +257,35 @@ export const updateStatus = async (req, res) => {
     }
     const statusNormalized = normalizeExternalStatus(incomingStatus);
 
-    const pedidoUpdate = await prismaClient.pedido.update({
+    const pedidoAtual = await prismaClient.pedido.findUnique({
       where: { id: Number(params.id) },
-      data: {
-        status: statusNormalized,
-      },
     });
+    if (!pedidoAtual) {
+      return res.status(404).json({ message: "Pedido não encontrado" });
+    }
+
+    let pedidoUpdate;
+    if (
+      pedidoAtual.status !== INTERNAL_STATUS.FINALIZADO &&
+      statusNormalized === INTERNAL_STATUS.FINALIZADO
+    ) {
+      // Transição para FINALIZADO: incrementa estoque e atualiza status
+      pedidoUpdate = await prismaClient.$transaction(async (tx) => {
+        await incrementarEstoqueDoPedido(tx, pedidoAtual.id);
+        return tx.pedido.update({
+          where: { id: pedidoAtual.id },
+          data: { status: statusNormalized },
+        });
+      });
+    } else {
+      // Outras mudanças de status
+      pedidoUpdate = await prismaClient.pedido.update({
+        where: { id: Number(params.id) },
+        data: {
+          status: statusNormalized,
+        },
+      });
+    }
 
     return res.status(200).json({
       message: "Pedido atualizado!",

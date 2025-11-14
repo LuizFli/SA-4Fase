@@ -31,7 +31,9 @@ class SimuladorService {
         method: "get",
         url: `http://52.1.197.112:3000/queue/items/${idFila}`,
       });
-      return result?.status?.id ?? result;
+      // Axios returns the response object; we need the payload
+      // so controllers can read fields like `status` correctly.
+      return result?.data;
     }
      catch (error) {
       console.log(error);

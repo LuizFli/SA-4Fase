@@ -61,6 +61,11 @@ export const Dashboard = () => {
                 Meus Pedidos
               </button>
             </div>
+            <div className="info-item" style={{ marginTop: 8 }}>
+              <button className="logout-button" onClick={() => navigate('/estoque')}>
+                Estoque
+              </button>
+            </div>
           </div>
 
           <div className="token-info">

@@ -8,7 +8,7 @@ import produtosRouter from "./routes/produtoRoutes.js";
 import publicPedidosRouter from "./routes/publicPedidosRoutes.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
 app.use(corsMiddleware);
