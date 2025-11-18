@@ -16,8 +16,10 @@ async function main() {
   const admin = await prisma.user.create({
     data: {
       name: "Admin",
-      email: "admin@example.com",
+      email: "admin@salesight.com",
       password: passwordHash,
+      cargo: "Administrador",
+      fone: "(11) 98765-4321",
     },
   });
 
@@ -26,6 +28,8 @@ async function main() {
       name: "User",
       email: "user@example.com",
       password: passwordHash,
+      cargo: "Usuario",
+      fone: "(48) 98754-2831",
     },
   });
 

@@ -32,10 +32,14 @@ export const createProduto = async (req, res) => {
   }
 };
 
-export const listProdutos = async (_req, res) => {
+export const listProdutos = async (req, res) => {
   try {
-    const pedidos = await prismaClient.produto.findMany();
-    res.json(pedidos);
+    const token = req?.headers?.authorization?.slice("Bearer ".length);
+    const payload = verifyAccess(token || "");
+    const produtos = await prismaClient.produto.findMany({
+      where: { userId: payload.userId },
+    });
+    res.json(produtos);
   } catch (error) {
     console.log(error);
     res.status(500).send(`Erro no servidor: ${error}`);
