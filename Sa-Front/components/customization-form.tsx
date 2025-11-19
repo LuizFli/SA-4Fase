@@ -4,6 +4,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertCircle } from 'lucide-react'
+import { useEffect } from "react"
+import { getSimuladorHealth } from '@/lib/api'
 
 export type Characteristics = {
   name: string
@@ -73,7 +75,7 @@ export function CustomizationForm({ isOpen, onClose, onSubmit, initialData }: Cu
       engine: "",
       transmission: "",
       wheels: "",
-      year: "",
+      year: String(new Date().getFullYear()),
       price: "",
       suspension: "",
       quantity: 1,
@@ -82,6 +84,22 @@ export function CustomizationForm({ isOpen, onClose, onSubmit, initialData }: Cu
 
   const [showConfirm, setShowConfirm] = useState(false)
   const [submitError, setSubmitError] = useState("")
+  const [simOnline, setSimOnline] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        const res = await getSimuladorHealth()
+        if (!mounted) return
+        setSimOnline(Boolean(res?.online))
+      } catch (e) {
+        if (!mounted) return
+        setSimOnline(false)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
 
   const isComplete = Object.values(characteristics).every((v) => v !== "")
 
@@ -104,7 +122,7 @@ export function CustomizationForm({ isOpen, onClose, onSubmit, initialData }: Cu
       engine: "",
       transmission: "",
       wheels: "",
-      year: "",
+      year: String(new Date().getFullYear()),
       price: "",
       suspension: "",
       quantity: 1,
@@ -120,8 +138,12 @@ export function CustomizationForm({ isOpen, onClose, onSubmit, initialData }: Cu
             <DialogTitle className="flex items-center gap-2">
               Pedir Produto
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                <span className="text-xs font-normal text-green-600">Online</span>
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${simOnline === null ? 'bg-gray-300 animate-pulse' : simOnline ? 'bg-green-500 animate-pulse' : 'bg-red-400'}`}
+                ></span>
+                <span className={`text-xs font-normal ${simOnline ? 'text-green-600' : 'text-red-600'}`}>
+                  {simOnline === null ? 'Verificando...' : simOnline ? 'Online' : 'Offline'}
+                </span>
               </span>
             </DialogTitle>
           </DialogHeader>

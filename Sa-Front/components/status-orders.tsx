@@ -20,6 +20,7 @@ interface Order {
   status: OrderStatus
   progress: number
   createdAt: string
+  createdAtIso?: string
   vehicleId?: number
   vehicleName?: string
   // extras vindos do backend
@@ -63,6 +64,8 @@ export function StatusOrders() {
           // Status
           status: mapBackendStatus(p.status),
           progress: mapProgress(p.status),
+          // Keep original ISO timestamp for ordering and a human-friendly date for display
+          createdAtIso: p.createdAt,
           createdAt: new Date(p.createdAt).toISOString().split("T")[0],
           // Extras
           // @ts-ignore
@@ -70,6 +73,16 @@ export function StatusOrders() {
           // @ts-ignore
           valor: p.valor,
         }
+      })
+      // Sort orders so that: production -> pending (oldest first) -> completed (oldest first) -> errors
+      const rank: Record<string, number> = { production: 0, pending: 1, completed: 2, error: 3 }
+      mapped.sort((a, b) => {
+        const ra = rank[a.status] ?? 99
+        const rb = rank[b.status] ?? 99
+        if (ra !== rb) return ra - rb
+        const ta = a.createdAtIso ? new Date(a.createdAtIso).getTime() : 0
+        const tb = b.createdAtIso ? new Date(b.createdAtIso).getTime() : 0
+        return ta - tb
       })
       setOrders(mapped)
       setMovedOrders([])
@@ -233,12 +246,7 @@ export function StatusOrders() {
                     <span className="font-medium text-gray-900">R$ {Number.parseFloat(String(order.valor || 0)).toFixed(2)}</span>
                   </p>
                 )}
-                {/* @ts-ignore */}
-                <p className="flex justify-between text-gray-600">
-                  <span>Fila:</span>
-                  {/* @ts-ignore */}
-                  <span className="font-medium text-gray-900">{order.idfila || '—'}</span>
-                </p>
+                {/* idfila intentionally hidden */}
                 <p className="flex justify-between text-gray-600">
                   <span>Rodas:</span>
                   <span className="font-medium text-gray-900">{order.wheels || '—'}</span>

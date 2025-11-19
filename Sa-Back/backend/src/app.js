@@ -6,6 +6,7 @@ import userRouter from "./routes/userRoutes.js";
 import pedidosRouter from "./routes/pedidosRoutes.js";
 import produtosRouter from "./routes/produtoRoutes.js";
 import publicPedidosRouter from "./routes/publicPedidosRoutes.js";
+import simuladorRouter from "./routes/simuladorRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,6 +20,8 @@ app.get("/health", (req, res) => {
 
 app.use(authRouter);
 app.use(publicPedidosRouter);
+// Expose a small public endpoint to check the external simulator health
+app.use(simuladorRouter);
 
 app.use(auth);
 

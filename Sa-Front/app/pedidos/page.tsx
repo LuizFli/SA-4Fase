@@ -3,37 +3,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AppShell } from '@/components/app-shell'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { getProdutos, createPedido, getPedidos, refreshPedidoStatus, Produto, Pedido } from '@/lib/api'
+import { getPedidos, refreshPedidoStatus, Pedido } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 type PedidoFilter = 'EM_ANDAMENTO' | 'TODOS' | 'PENDENTE' | 'EM_PROCESSO' | 'FINALIZADO'
 
 export default function PedidosPage() {
-  const [produtos, setProdutos] = useState<Produto[]>([])
   const [pedidos, setPedidos] = useState<Pedido[]>([])
-  const [loadingProdutos, setLoadingProdutos] = useState(false)
   const [loadingPedidos, setLoadingPedidos] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const [selectedIds, setSelectedIds] = useState<number[]>([])
-  const [status, setStatus] = useState('PENDENTE')
-  const [errorCreate, setErrorCreate] = useState('')
   const [filter, setFilter] = useState<PedidoFilter>('EM_ANDAMENTO')
   const [checking, setChecking] = useState<Record<number, boolean>>({})
   const [notice, setNotice] = useState('')
-
-  const loadProdutos = async () => {
-    setLoadingProdutos(true)
-    try {
-      const data = await getProdutos()
-      setProdutos(Array.isArray(data) ? data : [])
-    } catch (e: any) {
-      // silencioso
-    } finally {
-      setLoadingProdutos(false)
-    }
-  }
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({})
 
   const loadPedidos = async () => {
     setLoadingPedidos(true)
@@ -46,47 +27,35 @@ export default function PedidosPage() {
       setLoadingPedidos(false)
     }
   }
-
-  useEffect(() => {
-    loadProdutos()
-    loadPedidos()
-  }, [])
-
-  const total = useMemo(() => {
-    const sel = new Set(selectedIds)
-    return produtos.filter(p => sel.has(p.id)).reduce((acc, p) => acc + parseFloat(String(p.preco)), 0)
-  }, [selectedIds, produtos])
-
-  const toggleSelect = (id: number) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
-  }
-
   const pedidosFiltrados = useMemo(() => {
-    if (filter === 'TODOS') return pedidos
-    if (filter === 'EM_ANDAMENTO') return pedidos.filter(p => String(p.status).toUpperCase() !== 'FINALIZADO')
-    return pedidos.filter(p => String(p.status).toUpperCase() === filter)
+    // Determine base list according to filter.
+    // Per request: show concluded orders as well; treat 'EM_ANDAMENTO' similar to 'TODOS'
+    let list = [] as Pedido[]
+    if (filter === 'TODOS' || filter === 'EM_ANDAMENTO') {
+      list = [...pedidos]
+    } else {
+      list = pedidos.filter(p => String(p.status).toUpperCase() === filter)
+    }
+
+    // Sort: production -> pending (oldest first) -> completed (oldest first) -> others
+    const rank: Record<string, number> = {
+      'EM_PROCESSO': 0,
+      'EM PROCESSO': 0,
+      'PENDENTE': 1,
+      'FINALIZADO': 2,
+    }
+    list.sort((a, b) => {
+      const sa = String(a.status || '').toUpperCase()
+      const sb = String(b.status || '').toUpperCase()
+      const ra = rank[sa] ?? 99
+      const rb = rank[sb] ?? 99
+      if (ra !== rb) return ra - rb
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return ta - tb
+    })
+    return list
   }, [pedidos, filter])
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorCreate('')
-    if (selectedIds.length === 0) {
-      setErrorCreate('Selecione ao menos um produto')
-      return
-    }
-    setCreating(true)
-    try {
-      await createPedido({ produtos: selectedIds, valor: total, status })
-      setSelectedIds([])
-      setStatus('PENDENTE')
-      await loadPedidos()
-    } catch (err: any) {
-      setErrorCreate(err?.message || 'Erro ao criar pedido')
-    } finally {
-      setCreating(false)
-    }
-  }
-
   const checkStatus = async (pedido: Pedido) => {
     const id = pedido.id
     setNotice('')
@@ -110,56 +79,9 @@ export default function PedidosPage() {
       })
     }
   }
-
   return (
     <AppShell title="Pedidos">
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Criar Pedido */}
-        <div className="bg-white rounded-lg p-4 shadow-sm flex flex-col">
-          <h2 className="text-lg font-semibold mb-3">Novo Pedido</h2>
-          <form onSubmit={handleCreate} className="flex flex-col gap-3">
-            <div className="h-52 overflow-auto border rounded-md p-2 space-y-2 bg-[#f5f5f5]">
-              {loadingProdutos ? (
-                <p className="text-sm text-gray-500">Carregando produtos...</p>
-              ) : produtos.length === 0 ? (
-                <p className="text-sm text-gray-500">Nenhum produto disponível.</p>
-              ) : (
-                produtos.map(p => {
-                  const checked = selectedIds.includes(p.id)
-                  return (
-                    <label key={p.id} className={cn("flex items-start gap-2 text-sm cursor-pointer", checked && "text-[#ff5722]")}> 
-                      <Checkbox checked={checked} onCheckedChange={() => toggleSelect(p.id)} />
-                      <span>{p.marca} {p.modelo} • Ano {p.ano} • Estoque {p.estoque} • R$ {Number.parseFloat(String(p.preco)).toFixed(2)}</span>
-                    </label>
-                  )
-                })
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium">Status</label>
-                <select
-                  value={status}
-                  onChange={e => setStatus(e.target.value)}
-                  className="h-10 rounded-md border bg-white text-sm px-2"
-                >
-                  <option value="PENDENTE">PENDENTE</option>
-                  <option value="EM_PROCESSO">EM_PROCESSO</option>
-                  <option value="FINALIZADO">FINALIZADO</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-medium">Total</label>
-                <Input readOnly value={`R$ ${total.toFixed(2)}`} className="h-10" />
-              </div>
-            </div>
-            {errorCreate && <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">{errorCreate}</div>}
-            <Button type="submit" disabled={creating} className="bg-[#ff5722] hover:bg-[#e65b1b]">{creating ? 'Criando...' : 'Criar Pedido'}</Button>
-          </form>
-        </div>
-
-        {/* Lista de Pedidos */}
-        <div className="bg-white rounded-lg p-4 shadow-sm flex flex-col">
+      <div className="bg-white rounded-lg p-4 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Meus Pedidos</h2>
             <div className="flex gap-2">
@@ -201,6 +123,7 @@ export default function PedidosPage() {
                     const isFinalizado = st === 'FINALIZADO'
                     const isChecking = !!checking[p.id]
                     return (
+                      <>
                       <tr key={p.id} className="odd:bg-white even:bg-[#f9f7f6]">
                         <td className="px-2 py-1">#{p.id}</td>
                         <td className="px-2 py-1">{created ? created.toLocaleString() : '-'}</td>
@@ -215,7 +138,7 @@ export default function PedidosPage() {
                         <td className="px-2 py-1">R$ {valor.toFixed(2)}</td>
                         <td className="px-2 py-1 truncate max-w-40" title={produtosLinha}>{produtosLinha || '—'}</td>
                         <td className="px-2 py-1">{p.idfila || '—'}</td>
-                        <td className="px-2 py-1">
+                        <td className="px-2 py-1 flex gap-2">
                           <Button
                             size="sm"
                             variant="secondary"
@@ -225,8 +148,24 @@ export default function PedidosPage() {
                           >
                             {isChecking ? 'Checando…' : 'Checar'}
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setExpanded(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
+                            className="text-xs h-7"
+                          >
+                            {expanded[p.id] ? 'Fechar' : 'Detalhes'}
+                          </Button>
                         </td>
                       </tr>
+                      {expanded[p.id] && (
+                        <tr key={`details-${p.id}`} className="bg-gray-50">
+                          <td colSpan={7} className="px-4 py-2 text-xs">
+                            <pre className="whitespace-pre-wrap">{JSON.stringify(p, null, 2)}</pre>
+                          </td>
+                        </tr>
+                      )}
+                      </>
                     )
                   })}
                 </tbody>
@@ -234,7 +173,6 @@ export default function PedidosPage() {
             )}
           </div>
         </div>
-      </div>
     </AppShell>
   )
 }

@@ -2,7 +2,7 @@ import { getCookie, setCookie, TOKENS, deleteCookie } from "./session"
 // Allow using process.env in client-compiled code with type safety off
 declare const process: any
 
-const BASE_URL = (typeof process !== "undefined" && (process.env as any)?.NEXT_PUBLIC_API_BASE_URL) || "http://localhost:4000"
+const BASE_URL = (typeof process !== "undefined" && (process.env as any)?.NEXT_PUBLIC_API_BASE_URL) || "http://52.203.182.51:4000"
 
 type Json = Record<string, any>
 
@@ -197,4 +197,10 @@ export async function createPedido(body: { valor: string | number; status: strin
 
 export async function refreshPedidoStatus(id: number) {
   return apiFetch<{ status: string; idfila?: string }>(`/pedidos/${id}/status`, { method: "GET" })
+}
+
+export async function getSimuladorHealth() {
+  // Request simulador health using current auth token so backend can allow access.
+  // Do not force `auth: false` here because some deployments protect this route.
+  return apiFetch<{ online: boolean; status: number | null; data: any }>(`/simulador/health`, { method: "GET" })
 }
