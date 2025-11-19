@@ -1,4 +1,4 @@
-import { getCookie, setCookie, TOKENS } from "./session"
+import { getCookie, setCookie, TOKENS, deleteCookie } from "./session"
 // Allow using process.env in client-compiled code with type safety off
 declare const process: any
 
@@ -63,6 +63,17 @@ export async function apiFetch<T = any>(path: string, opts: FetchOptions = {}): 
     if (refreshed) {
       hdrs.Authorization = `Bearer ${refreshed}`
       res = await rawFetch(path, { method, headers: hdrs, body: sendBody })
+    } else {
+      // Falha definitiva: limpar tokens e redirecionar para login no cliente
+      deleteCookie(TOKENS.access)
+      deleteCookie(TOKENS.refresh)
+      if (typeof window !== 'undefined') {
+        // Evita loops se já estiver em /login
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login?expired=1'
+        }
+      }
+      throw new Error('Token expirado. Faça login novamente.')
     }
   }
 

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Mail, Lock } from 'lucide-react'
@@ -9,10 +9,18 @@ import { loginApi } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
+  const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const expired = search?.get('expired')
+    if (expired) {
+      setError('Token expirado. Faça login novamente.')
+    }
+  }, [search])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,7 +64,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   type="email"
-                  placeholder="alex@email.com"
+                  placeholder="admin@salesight.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full h-14 pl-4 pr-14 bg-[#f5f5f5] border-none rounded-lg focus:ring-2 focus:ring-[#FD7401] text-base"

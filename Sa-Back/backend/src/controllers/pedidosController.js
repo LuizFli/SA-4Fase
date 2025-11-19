@@ -110,13 +110,17 @@ export const createPedido = async (req, res) => {
   try {
     const token = req?.headers?.authorization?.slice("Bearer ".length);
     const payload = verifyAccess(token || "");
+    const userId = payload?.userId ?? payload?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Token sem userId. Faça login novamente." });
+    }
     const produtosDb = await prismaClient.produto.findMany({
       where: { id: { in: produtos } },
     });
     const pedido = await prismaClient.pedido.create({
       data: {
         ...dados,
-        userId: payload.userId,
+        userId: userId,
       },
     });
 
@@ -131,7 +135,7 @@ export const createPedido = async (req, res) => {
     const resultado = await simuladorService.enviarPedidoParaFila(
       pedido,
       produtosDb
-    ); 
+    );  
     try {
       const queueId = resultado?.data?.id ?? resultado?.id;
       if (queueId) {
@@ -162,7 +166,12 @@ export const listPedidos = async (req, res) => {
         userId: payload.userId,
       },
       include: {
+        // Tenta carregar relação direta (caso o schema suporte)
         produto: true,
+        // E também a relação explícita via tabela de junção
+        produtosEmPedidos: {
+          include: { produto: true },
+        },
       },
     });
     res.json(pedidos);

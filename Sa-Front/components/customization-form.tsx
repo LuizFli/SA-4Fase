@@ -19,39 +19,38 @@ export type Characteristics = {
 }
 
 const colors = [
-  { id: "red", name: "Vermelho", hex: "#EF4444" },
-  { id: "black", name: "Preto", hex: "#1F2937" },
-  { id: "white", name: "Branco", hex: "#F3F4F6" },
-  { id: "blue", name: "Azul", hex: "#3B82F6" },
-  { id: "silver", name: "Prata", hex: "#D1D5DB" },
+  { id: "red", name: "Vermelho", hex: "#EF4444", cor: 1 },
+  { id: "black", name: "Preto", hex: "#1F2937" , cor: 2},
+  { id: "white", name: "Branco", hex: "#F3F4F6" , cor: 3},
+  { id: "blue", name: "Azul", hex: "#3B82F6" , cor: 4},
+  { id: "silver", name: "Prata", hex: "#D1D5DB", cor: 5 },
 ]
-
 const engines = [
-  { id: "1.0", name: "1.0" },
-  { id: "1.6", name: "1.6" },
-  { id: "2.0", name: "2.0" },
-  { id: "2.5", name: "2.5" },
-  { id: "3.0", name: "3.0" },
+  { id: "1.0", name: "1.0" ,lamina1: 1},
+  { id: "1.6", name: "1.6" ,lamina1: 2},
+  { id: "2.0", name: "2.0" ,lamina1: 3},
+  { id: "2.5", name: "2.5" ,lamina1: 4},
+  { id: "3.0", name: "3.0" ,lamina1: 5 },
 ]
 
 const transmissions = [
-  { id: "manual", name: "Manual" },
-  { id: "automatic", name: "Automático" },
-  { id: "cvt", name: "CVT" },
-  { id: "dual", name: "Dual Clutch" },
-  { id: "electric", name: "Elétrico" },
+  { id: "manual", name: "Manual",lamina2: 1 },
+  { id: "automatic", name: "Automático", lamina2: 2 },
+  { id: "cvt", name: "CVT" , lamina2: 3 },
+  { id: "dual", name: "Dual Clutch", lamina2: 4 },
+  { id: "electric", name: "Elétrico", lamina2: 5 },
 ]
 
 const wheels = [
-  { id: "alloy", name: "Liga Leve" },
-  { id: "steel", name: "Aço" },
-  { id: "sport", name: "Esportiva" },
-  { id: "offroad", name: "Off-Road" },
-  { id: "premium", name: "Premium" },
+  { id: "alloy", name: "Liga Leve",lamina3: 1 },
+  { id: "steel", name: "Aço" ,lamina3: 2 },
+  { id: "sport", name: "Esportiva" ,lamina3: 3 },
+  { id: "offroad", name: "Off-Road" ,lamina3: 4 },
+  { id: "premium", name: "Premium" ,lamina3: 5 },
 ]
 
 const suspensions = [
-  { id: "independent", name: "Independente" },
+  { id: "independent", name: "Independente", },
   { id: "macpherson", name: "MacPherson" },
   { id: "multilink", name: "Multi-link" },
   { id: "air", name: "Ar Comprimido" },

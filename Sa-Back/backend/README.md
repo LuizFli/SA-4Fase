@@ -64,6 +64,30 @@ docker build -t sa-backend:1.0.0 --target prod .
 docker run --env-file .env -p 4000:4000 sa-backend:1.0.0
 ```
 
+### Variáveis obrigatórias (.env)
+Exemplo mínimo para desenvolvimento:
+```
+DATABASE_URL="mysql://root:senha@localhost:3306/salesight"
+ACCESS_TOKEN_SECRET="dev_access_secret"
+REFRESH_TOKEN_SECRET="dev_refresh_secret"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="8h"
+```
+
+Se `DATABASE_URL` faltar o servidor agora aborta logo no início com uma mensagem clara (veja `prisma/prisma.js`).
+
+### Passos de inicialização (local)
+1. Criar/editar `.env` com `DATABASE_URL` válido.
+2. Instalar dependências: `npm install`
+3. Gerar client Prisma: `npx prisma generate`
+4. Criar schema no banco (sem migrações versionadas): `npx prisma db push` ou, se usar migrações, `npx prisma migrate dev --name init`
+5. Seed opcional: `npx prisma db seed`
+6. Iniciar: `npm run dev` ou `npm start`
+
+Erros comuns:
+- `Environment variable not found: DATABASE_URL`: falta definir no `.env` ou não carregou (garantido agora pelo import de `dotenv` em `prisma/prisma.js`).
+- Credenciais inválidas MySQL: verifique usuário/senha/host/porta e se o serviço está ativo.
+
 Principais variáveis esperadas (exemplo `.env` – NÃO commitar) para MySQL:
 ```
 PORT=4000

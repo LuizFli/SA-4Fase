@@ -96,7 +96,7 @@ export const refresh = async (req, res) => {
   try {
     const payload = verifyRefresh(refreshToken);
     const accessToken = signAccessToken({
-      userId: payload.id,
+      userId: payload.userId,
       email: payload.email,
       name: payload.name,
     });

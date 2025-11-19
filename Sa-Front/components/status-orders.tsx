@@ -12,6 +12,7 @@ interface Order {
   id: string
   color?: string
   model?: string
+  brand?: string
   engine?: string
   transmission?: string
   wheels?: string
@@ -21,6 +22,9 @@ interface Order {
   createdAt: string
   vehicleId?: number
   vehicleName?: string
+  // extras vindos do backend
+  valor?: string | number
+  idfila?: string
 }
 
 export function StatusOrders() {
@@ -28,6 +32,8 @@ export function StatusOrders() {
   const [movedOrders, setMovedOrders] = useState<{ id: string; data: Order }[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState<Record<string, boolean>>({})
+  const [notice, setNotice] = useState("")
 
   useEffect(() => {
     loadFromBackend()
@@ -37,19 +43,37 @@ export function StatusOrders() {
     try {
       setLoading(true)
       const data = await getPedidos()
-      const mapped: Order[] = data.map((p: Pedido) => ({
-        id: String(p.id),
-        // When include produto: true, may be array
-        model: p.produto?.[0]?.modelo,
-        color: p.produto?.[0]?.cor,
-        engine: p.produto?.[0]?.motor,
-        transmission: p.produto?.[0]?.cambio,
-        status: mapBackendStatus(p.status),
-        progress: mapProgress(p.status),
-        createdAt: new Date(p.createdAt).toISOString().split("T")[0],
-      }))
+      const mapped: Order[] = data.map((p: Pedido) => {
+        const pe = (p as any)
+        const first = (pe.produto?.[0] || pe.produtosEmPedidos?.[0]?.produto) as any
+        const bloco = (first?.bloco || {}) as Record<string, any>
+        const derived = deriveFromBloco(bloco)
+        return {
+          id: String(p.id),
+          // Informações do produto (ou derivadas do bloco)
+          brand: first?.marca,
+          model: first?.modelo,
+          color: first?.cor || derived.colorName,
+          engine: first?.motor || derived.engineName,
+          transmission: first?.cambio || derived.transmissionName,
+          wheels: derived.wheelsName,
+          suspension: undefined,
+          vehicleId: first?.id,
+          vehicleName: first ? `${first?.marca ?? ''} ${first?.modelo ?? ''}`.trim() : undefined,
+          // Status
+          status: mapBackendStatus(p.status),
+          progress: mapProgress(p.status),
+          createdAt: new Date(p.createdAt).toISOString().split("T")[0],
+          // Extras
+          // @ts-ignore
+          idfila: (p as any).idfila,
+          // @ts-ignore
+          valor: p.valor,
+        }
+      })
       setOrders(mapped)
       setMovedOrders([])
+      setNotice("")
     } finally {
       setLoading(false)
     }
@@ -76,6 +100,32 @@ export function StatusOrders() {
       )
     } finally {
       await loadFromBackend()
+    }
+  }
+
+  const handleCheckOne = async (order: Order) => {
+    setNotice("")
+    setChecking((prev) => ({ ...prev, [order.id]: true }))
+    const oldStatus = order.status
+    try {
+      const idNum = Number(order.id)
+      const data = await refreshPedidoStatus(idNum)
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: mapBackendStatus(data.status), progress: mapProgress(data.status), /* @ts-ignore */ idfila: data.idfila } : o)),
+      )
+      const newStatus = mapBackendStatus(data.status)
+      if (newStatus !== oldStatus) {
+        setNotice(`Pedido #${order.id}: status atualizado de ${labelStatus(oldStatus)} para ${labelStatus(newStatus)}.`)
+      } else {
+        setNotice(`Pedido #${order.id}: status permanece ${labelStatus(newStatus)}.`)
+      }
+    } catch (e: any) {
+      setNotice(`Pedido #${order.id}: ${e?.message || "Falha ao consultar status"}`)
+    } finally {
+      setChecking((prev) => {
+        const { [order.id]: _omit, ...rest } = prev
+        return rest
+      })
     }
   }
 
@@ -121,6 +171,11 @@ export function StatusOrders() {
         </div>
       </Card>
 
+      {/* Aviso/notice */}
+      {notice && (
+        <Card className="bg-[#f5f5f5] p-3 border-none text-xs text-[#1a1a1a]">{notice}</Card>
+      )}
+
       {/* Orders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredOrders.map((order) => {
@@ -151,7 +206,11 @@ export function StatusOrders() {
               <div className="space-y-2 mb-4 text-xs">
                 <p className="flex justify-between text-gray-600">
                   <span>Modelo:</span>
-                  <span className="font-medium text-gray-900">{order.model}</span>
+                  <span className="font-medium text-gray-900">{order.model || '—'}</span>
+                </p>
+                <p className="flex justify-between text-gray-600">
+                  <span>Marca:</span>
+                  <span className="font-medium text-gray-900">{order.brand || '—'}</span>
                 </p>
                 <p className="flex justify-between text-gray-600">
                   <span>Cor:</span>
@@ -165,9 +224,24 @@ export function StatusOrders() {
                   <span>Câmbio:</span>
                   <span className="font-medium text-gray-900">{order.transmission}</span>
                 </p>
+                {/* Dados do backend de Pedidos */}
+                {/* @ts-ignore */}
+                {order.valor !== undefined && (
+                  <p className="flex justify-between text-gray-600">
+                    <span>Valor:</span>
+                    {/* @ts-ignore */}
+                    <span className="font-medium text-gray-900">R$ {Number.parseFloat(String(order.valor || 0)).toFixed(2)}</span>
+                  </p>
+                )}
+                {/* @ts-ignore */}
+                <p className="flex justify-between text-gray-600">
+                  <span>Fila:</span>
+                  {/* @ts-ignore */}
+                  <span className="font-medium text-gray-900">{order.idfila || '—'}</span>
+                </p>
                 <p className="flex justify-between text-gray-600">
                   <span>Rodas:</span>
-                  <span className="font-medium text-gray-900">{order.wheels}</span>
+                  <span className="font-medium text-gray-900">{order.wheels || '—'}</span>
                 </p>
                 {order.suspension && (
                   <p className="flex justify-between text-gray-600">
@@ -182,14 +256,16 @@ export function StatusOrders() {
                 <Button onClick={handleRefresh} className="p-2 bg-gray-200 hover:bg-gray-300 text-gray-700" size="sm">
                   <RefreshCw className="w-4 h-4" />
                 </Button>
-                {order.status === "completed" && (
-                  <Button
-                    onClick={() => handleMoveToEstoque(order)}
-                    className="flex-1 bg-[#ff5722] hover:bg-[#ff5722]/90 text-white text-xs font-medium"
-                  >
-                    Mover para Estoque
-                  </Button>
-                )}
+                <Button
+                  onClick={() => handleCheckOne(order)}
+                  size="sm"
+                  className="flex-1 bg-[#ff5722] hover:bg-[#ff5722]/90 text-white text-xs font-medium"
+                  // @ts-ignore
+                  disabled={checking[order.id] || order.status === 'completed' || !order.idfila}
+                >
+                  {/* @ts-ignore */}
+                  {checking[order.id] ? 'Checando…' : 'Checar status'}
+                </Button>
               </div>
             </Card>
           )
@@ -219,4 +295,57 @@ function mapProgress(s: string): number {
   if (up === "EM_PROCESSO") return 60
   if (up === "FINALIZADO") return 100
   return 0
+}
+
+function labelStatus(st: OrderStatus): string {
+  switch (st) {
+    case 'pending': return 'PENDENTE'
+    case 'production': return 'EM_PROCESSO'
+    case 'completed': return 'FINALIZADO'
+    default: return 'ERRO'
+  }
+}
+
+function deriveFromBloco(bloco: Record<string, any>) {
+  const colorName = (() => {
+    switch (bloco?.cor) {
+      case 1: return 'Vermelho'
+      case 2: return 'Preto'
+      case 3: return 'Branco'
+      case 4: return 'Azul'
+      case 5: return 'Prata'
+      default: return undefined
+    }
+  })()
+  const engineName = (() => {
+    switch (bloco?.lamina1) {
+      case 1: return '1.0'
+      case 2: return '1.6'
+      case 3: return '2.0'
+      case 4: return '2.5'
+      case 5: return '3.0'
+      default: return undefined
+    }
+  })()
+  const transmissionName = (() => {
+    switch (bloco?.lamina2) {
+      case 1: return 'Manual'
+      case 2: return 'Automático'
+      case 3: return 'CVT'
+      case 4: return 'Dual Clutch'
+      case 5: return 'Elétrico'
+      default: return undefined
+    }
+  })()
+  const wheelsName = (() => {
+    switch (bloco?.lamina3) {
+      case 1: return 'Liga Leve'
+      case 2: return 'Aço'
+      case 3: return 'Esportiva'
+      case 4: return 'Off-Road'
+      case 5: return 'Premium'
+      default: return undefined
+    }
+  })()
+  return { colorName, engineName, transmissionName, wheelsName }
 }

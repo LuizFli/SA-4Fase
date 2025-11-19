@@ -141,12 +141,11 @@ export function VehiclesSummaryTable({ limit, showFilters = true }: VehiclesSumm
     if (movementType === "increase") {
       try {
         const quantity = Number.parseInt(movementQuantity) || 1
+        const valor = parsePrice(String(selectedVehicle.price))
         for (let i = 0; i < quantity; i++) {
-          const pedido = await createPedido({ valor: 0, status: "PENDENTE", produtos: [selectedVehicle.productId] })
-          // Finaliza imediatamente para refletir no estoque (incremento no backend)
-          await finalizePedido(pedido.id, "FINALIZADO")
+          await createPedido({ valor, status: "PENDENTE", produtos: [selectedVehicle.productId] })
         }
-        await loadProdutos()
+        // Pedido criado não atualiza estoque imediatamente; manter UI atual
       } catch (e: any) {
         setError(e?.message || "Falha ao aumentar estoque")
       } finally {
@@ -173,11 +172,65 @@ export function VehiclesSummaryTable({ limit, showFilters = true }: VehiclesSumm
     }
   }
 
+  
+
   const handleCustomizationSubmit = async (characteristics: Characteristics) => {
     // Build produto payload
     const colorName = colors.find((c) => c.id === characteristics.color)?.name || characteristics.color
     const transmissionName = transmissions.find((t) => t.id === characteristics.transmission)?.name || characteristics.transmission
     const precoNum = parsePrice(characteristics.price)
+
+    // Mapear blocos técnicos esperados pelo simulador
+    const corCode = (() => {
+      switch (characteristics.color) {
+        case 'red': return 1
+        case 'black': return 2
+        case 'white': return 3
+        case 'blue': return 4
+        case 'silver': return 5
+        default: return undefined
+      }
+    })()
+    const lamina1 = (() => {
+      switch (characteristics.engine) {
+        case '1.0': return 1
+        case '1.6': return 2
+        case '2.0': return 3
+        case '2.5': return 4
+        case '3.0': return 5
+        default: return undefined
+      }
+    })()
+    const lamina2 = (() => {
+      switch (characteristics.transmission) {
+        case 'manual': return 1
+        case 'automatic': return 2
+        case 'cvt': return 3
+        case 'dual': return 4
+        case 'electric': return 5
+        default: return undefined
+      }
+    })()
+    const lamina3 = (() => {
+      switch (characteristics.wheels) {
+        case 'alloy': return 1
+        case 'steel': return 2
+        case 'sport': return 3
+        case 'offroad': return 4
+        case 'premium': return 5
+        default: return undefined
+      }
+    })()
+
+    const bloco = {
+      cor: corCode,
+      lamina1,
+      lamina2,
+      lamina3,
+      padrao1: 'M2',
+      padrao2: 'N2',
+      padrao3: 'O2',
+    }
 
     const produtoPayload = {
       marca: (characteristics.name?.split(" ")?.[0] || characteristics.brandModel || "") as string,
@@ -188,7 +241,7 @@ export function VehiclesSummaryTable({ limit, showFilters = true }: VehiclesSumm
       cambio: transmissionName,
       preco: precoNum,
       status: "ATIVO",
-      bloco: {},
+      bloco,
       estoque: 0,
     }
 
@@ -526,7 +579,7 @@ export function VehiclesSummaryTable({ limit, showFilters = true }: VehiclesSumm
               ) : movementType === "increase" || movementType === "decrease" ? (
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-700">
-                    {movementType === "increase" ? "Quantidade a produzir:" : "Quantidade a remover:"}
+                    {movementType === "increase" ? "Quantidade a pedir:" : "Quantidade a remover:"}
                   </label>
                   <input
                     type="number"

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
-import { Bell, Search, LayoutDashboard, Car, Settings, Clock, LogOut } from 'lucide-react'
+import { Bell, Search, LayoutDashboard, Car, Settings, Clock, LogOut, Package } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,6 +24,7 @@ export function AppShell({ title = "Dashboard", children }: AppShellProps) {
   const isDashboard = pathname === "/"
   const isEstoque = pathname.startsWith("/estoque")
   const isStatus = pathname.startsWith("/status")
+  const isPedidos = pathname.startsWith("/pedidos")
   const isConfiguracoes = pathname.startsWith("/configuracoes")
 
   const navBtnBase = "w-full justify-start text-sm h-11 rounded-lg font-medium"
@@ -84,6 +85,20 @@ export function AppShell({ title = "Dashboard", children }: AppShellProps) {
               <Link href="/status">
                 <Clock className={cn("w-5 h-5 mr-2", isStatus ? "text-[#ff5722]" : "text-white")} />
                 Status
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="ghost"
+              className={cn(
+                navBtnBase,
+                isPedidos ? "bg-white text-black hover:bg-white hover:text-[#ff5722]" : "text-white hover:bg-white/10",
+              )}
+            >
+              <Link href="/pedidos">
+                <Package className={cn("w-5 h-5 mr-2", isPedidos ? "text-[#ff5722]" : "text-white")} />
+                Pedidos
               </Link>
             </Button>
           </div>
