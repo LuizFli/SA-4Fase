@@ -1,0 +1,26 @@
+{
+  "name": "avaliacao-iot-service",
+  "version": "1.0.0",
+  "description": "Serviço web simples para avaliação prática (IoT) com rotas /api/registro e /api/ultimo.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "npx nodemon src/server.js"
+  },
+  "keywords": [
+    "iot",
+    "express",
+    "docker",
+    "http",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

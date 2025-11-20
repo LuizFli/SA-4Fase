@@ -1,0 +1,17 @@
+### Healthcheck
+GET http://44.197.115.40
+
+### GET ultimo (antes de registrar)
+GET http://44.197.115.40/api/ultimo
+
+### POST registro valido
+POST http://44.197.115.40/api/registro
+Content-Type: application/json
+
+{
+  "temperatura": 20.3,
+  "ar": true
+}
+
+### GET ultimo (apos registrar)
+GET http://44.197.115.40/api/ultimo
