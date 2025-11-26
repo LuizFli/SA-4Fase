@@ -1,7 +1,8 @@
 ############################
 # Imagem de Produção Única
 ############################
-FROM node:18-alpine
+FROM node:20-alpine
+RUN apk add --no-cache openssl
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package*.json ./

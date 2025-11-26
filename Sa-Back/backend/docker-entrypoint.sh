@@ -39,4 +39,12 @@ if [ -n "${SIMULATOR_URL}" ]; then
   printf 'SIMULATOR_URL="%s"\n' "${SIMULATOR_URL}" >> /app/.env
 fi
 
+# If CORS_ALLOWED_ORIGINS is provided, write it to .env
+if [ -n "${CORS_ALLOWED_ORIGINS}" ]; then
+  echo "[entrypoint] CORS_ALLOWED_ORIGINS present; exporting and writing to /app/.env"
+  export CORS_ALLOWED_ORIGINS
+  mkdir -p /app
+  printf 'CORS_ALLOWED_ORIGINS="%s"\n' "${CORS_ALLOWED_ORIGINS}" >> /app/.env
+fi
+
 exec "$@"
