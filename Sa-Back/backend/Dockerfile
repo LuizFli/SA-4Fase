@@ -12,7 +12,9 @@ COPY prisma ./prisma
 RUN npx prisma generate
 COPY src ./src
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Converte quebras de linha Windows (CRLF) para Linux (LF) e dá permissão de execução
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD node -e "require('http').get('http://localhost:4000/health',r=>{if(r.statusCode!==200)process.exit(1)}).on('error',()=>process.exit(1))"
 EXPOSE 4000

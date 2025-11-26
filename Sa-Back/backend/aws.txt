@@ -1,1 +1,6 @@
 docker run --name mysql-sa -e MYSQL_ROOT_PASSWORD=senai -d -p 3306:3306 mysql:latest
+
+
+docker run -d --name sa-backend -p 4000:4000 -e SIMULATOR_URL=http://52.72.137.244:3000 -e DATABASE_URL=mysql://root:senai@52.23.42.4:3306/salesigth_db luizfli/sa-backend:latest
+
+

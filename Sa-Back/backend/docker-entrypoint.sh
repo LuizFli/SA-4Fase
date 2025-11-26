@@ -12,6 +12,15 @@ if [ -n "${DB_HOST}" ] && [ -z "${DATABASE_URL}" ]; then
   echo "[entrypoint] Set DATABASE_URL from DB_HOST: ${DATABASE_URL}"
 fi
 
+# If SIMULATOR_HOST is provided and SIMULATOR_URL is not, construct SIMULATOR_URL
+if [ -n "${SIMULATOR_HOST}" ] && [ -z "${SIMULATOR_URL}" ]; then
+  SIMULATOR_PORT="${SIMULATOR_PORT:-3000}"
+  SIMULATOR_PROTOCOL="${SIMULATOR_PROTOCOL:-http}"
+  SIMULATOR_URL="${SIMULATOR_PROTOCOL}://${SIMULATOR_HOST}:${SIMULATOR_PORT}"
+  export SIMULATOR_URL
+  echo "[entrypoint] Set SIMULATOR_URL from SIMULATOR_HOST: ${SIMULATOR_URL}"
+fi
+
 # If DATABASE_URL is provided explicitly, ensure it's exported and write it
 # to /app/.env so code that reads a .env file (or Prisma using dotenv) can pick it up.
 if [ -n "${DATABASE_URL}" ]; then
@@ -20,6 +29,14 @@ if [ -n "${DATABASE_URL}" ]; then
   mkdir -p /app
   # Write with double quotes around the value to preserve special chars
   printf 'DATABASE_URL="%s"\n' "${DATABASE_URL}" > /app/.env
+fi
+
+# If SIMULATOR_URL is provided (or constructed), write it to .env
+if [ -n "${SIMULATOR_URL}" ]; then
+  echo "[entrypoint] SIMULATOR_URL present; exporting and writing to /app/.env"
+  export SIMULATOR_URL
+  mkdir -p /app
+  printf 'SIMULATOR_URL="%s"\n' "${SIMULATOR_URL}" >> /app/.env
 fi
 
 exec "$@"

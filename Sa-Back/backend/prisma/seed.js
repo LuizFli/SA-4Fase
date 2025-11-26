@@ -11,6 +11,12 @@ async function main() {
   await prisma.token.deleteMany();
   await prisma.user.deleteMany();
 
+  // Reset Auto Increment counters (MySQL specific)
+  await prisma.$queryRaw`ALTER TABLE pedido AUTO_INCREMENT = 1`;
+  await prisma.$queryRaw`ALTER TABLE produto AUTO_INCREMENT = 1`;
+  await prisma.$queryRaw`ALTER TABLE token AUTO_INCREMENT = 1`;
+  await prisma.$queryRaw`ALTER TABLE user AUTO_INCREMENT = 1`;
+
   // Users
   const passwordHash = await bcrypt.hash("123456", 10);
   const admin = await prisma.user.create({

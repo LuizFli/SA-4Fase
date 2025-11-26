@@ -1,4 +1,5 @@
 import axios from "axios";
+import { env } from "../env.js";
 
 class SimuladorService {
   constructor() {}
@@ -7,7 +8,7 @@ class SimuladorService {
       const pedidoId = pedido.id;
       const result = await axios({
         method: "post",
-        url: "http://52.1.197.112:3000/queue/items",
+        url: `${env.simulatorUrl}/queue/items`,
         data: {
           payload: {
             orderId: pedidoId,
@@ -29,7 +30,7 @@ class SimuladorService {
     try {
       const result = await axios({
         method: "get",
-        url: `http://52.1.197.112:3000/queue/items/${idFila}`,
+        url: `${env.simulatorUrl}/queue/items/${idFila}`,
       });
       // Axios returns the response object; we need the payload
       // so controllers can read fields like `status` correctly.
@@ -42,7 +43,7 @@ class SimuladorService {
   }
   async consultarHealth() {
       try {
-        const result = await axios.get(`http://52.1.197.112:3000/health`);
+        const result = await axios.get(`${env.simulatorUrl}/health`);
         // Return a simple object with the status code and body so callers
         // can easily check whether it's 200 or another code.
         return {
